@@ -53,6 +53,8 @@ The basic scan is used to test a thousand of the most used and vulnerable ports,
 
 [More info on the documentation of nmap](https://nmap.org/docs.html)
 
+---
+
 </details>
 
 Here is the result on my attacking device :
@@ -78,6 +80,8 @@ Nmap done: 1 IP address (1 host up) scanned in 6.61 seconds
 <summary>scan explanation</summary>
 
 We have a bunch of details such as targetted IP, we can see the host is up, and that 999 tcp ports are not shown because closed. But the main course is that http port (80) is open and with a website running with it. We can see more information on the targetted device, this is a debian, using Apache, we have the versionning and the MAC adress too, using Vbox, where the OVA of the box is virtualised.
+
+---
 
 </details>
 
@@ -114,6 +118,8 @@ We can specify some parameters using ffuf, such as :
 
 [Here is the git of ffuf](https://github.com/ffuf/ffuf)
 
+---
+
 </details>
 
 So here is my ffuf command :
@@ -133,6 +139,8 @@ This command uses FFUF to brute-force hidden web paths on the target server.
 -u sets the target URL, replacing FUZZ with each word from the list. Here I simply started my fuzzing at the root of the website.
 
 -c enables colored output for better readability.
+
+---
 
 </details>
 
@@ -217,6 +225,8 @@ p = port
 
 4444 = port used to listening (we can change the port as we want)
 
+---
+
 </details>
 
 
@@ -237,6 +247,7 @@ This command is used to launch a bash with those parameters :
 
 So basicaly this is used to send commands toward the targetted device and thoses are treated by the shell like a classic one of the attacking PC.
 
+---
 
 </details>
 
