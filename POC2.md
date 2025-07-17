@@ -411,6 +411,7 @@ Here is the breakdown by AI assistant :
 | `-type f`     | Only return **regular files** (i.e., exclude directories, links, etc.).                                                                           |
 | `2>/dev/null` | Suppress **permission denied** errors by redirecting `stderr` (file descriptor 2) to `/dev/null`.                                                 |
 
+---
 <details>
 
 And here is the details.
