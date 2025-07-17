@@ -392,6 +392,7 @@ A file with the SUID bit set allows any user to execute it with the permissions 
 Therefore, if a binary owned by root is executable with the SUID bit and is either vulnerable or misconfigured, it can potentially be exploited to gain privilege escalation.
 
 ---
+
 </details>
 
 So here is my command for testing thoses bin ```find / -perm -4000 -type f 2>/dev/null```
@@ -412,7 +413,8 @@ Here is the breakdown by AI assistant :
 | `2>/dev/null` | Suppress **permission denied** errors by redirecting `stderr` (file descriptor 2) to `/dev/null`.                                                 |
 
 ---
-<details>
+
+</details>
 
 And here is the details.
 
