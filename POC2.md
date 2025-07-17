@@ -15,7 +15,6 @@ For this box, only an OVA for a virtual machine is provided, where I can see IP 
 3. [FTP intrusion test](#FTP-intrusion-test)
 4. [Reverse shell](#Reverse-shell)
 5. [SUID privilege escalation](#SUID-privilege-escalation)
-6. [](#)
 
 ---
 
