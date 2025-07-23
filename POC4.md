@@ -240,7 +240,9 @@ admin' closes the original string input.
 or '1'='1 always evaluates to true.
 
 The final SQL query becomes something like:
+```
 SELECT * FROM users WHERE username = 'admin' OR '1'='1' AND password = '';
+```
 Since '1'='1' is always true, the authentication is bypassed, and access is granted.
 
 </details>
