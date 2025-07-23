@@ -260,7 +260,7 @@ I can see in this webpage the second flag too : ```FLAG2{L-ARCHIVAGE-DE-DONNEES-
 
 ## Reverse shell
 
-I choose to use again the usefull (pentestmonkey php revshell)[https://github.com/pentestmonkey/php-reverse-shell]
+I choose to use again the usefull [pentestmonkey php revshell](https://github.com/pentestmonkey/php-reverse-shell)
 ```wget https://raw.githubusercontent.com/pentestmonkey/php-reverse-shell/master/php-reverse-shell.php```
 
 Don't forget to change your ip and port listening
@@ -336,7 +336,7 @@ And here I find thoses results :
 ```
 
 This is highly exploitable. The capability ```cap_setuid+ep``` on ```/usr/bin/php7.3``` means PHP can change its UID, even to root, without sudo.
-So let's investigate in (GTFOBins)[https://gtfobins.github.io/gtfobins/php/#capabilities] :
+So let's investigate in [GTFOBins](https://gtfobins.github.io/gtfobins/php/#capabilities) :
 
 ```
 Capabilities
